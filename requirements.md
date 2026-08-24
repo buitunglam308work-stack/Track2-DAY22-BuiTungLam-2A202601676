@@ -12,20 +12,28 @@ pip install -r requirements.txt
 ## requirements.txt
 
 ```
-langchain>=0.3.0
-langchain-core>=0.3.0
-langchain-openai>=0.3.0
-langchain-community>=0.3.0
-langchain-text-splitters>=0.3.0
-langsmith>=0.2.0
-openai>=1.0.0
+langchain==1.3.14
+langchain-core==1.5.3
+langchain-openai==1.4.1
+langchain-community==0.3.31
+dataclasses-json==0.6.7
+marshmallow>=3.18.0,<4.0.0
+typing-inspect>=0.7.1,<1.0.0
+mypy-extensions>=0.3.0
+langchain-text-splitters==1.1.2
+langchain-google-genai==4.3.2
+langchain-anthropic==1.5.4
+langchain-ollama==1.1.0
+langsmith>=0.10.0,<1.0.0
+openai>=2.49.0,<3.0.0
 faiss-cpu>=1.7.0
-ragas>=0.4.0
-guardrails-ai>=0.5.0
+ragas==0.4.3
+guardrails-ai==0.10.2
 python-dotenv>=1.0.0
 tiktoken>=0.5.0
-datasets>=2.0.0
-numpy>=1.25.0
+datasets>=4.0.0,<5.0.0
+pyarrow>=21.0.0,<22.0.0
+numpy>=1.25.0,<3.0.0
 ```
 
 ## Package Purposes
@@ -44,6 +52,7 @@ numpy>=1.25.0
 | `python-dotenv` | Load `.env` file |
 | `tiktoken` | Token counting for text splitters |
 | `datasets` | Required by RAGAS internally |
+| `pyarrow` | Arrow backend required by the pinned datasets/RAGAS stack |
 | `numpy` | Averaging RAGAS score lists |
 
 ## Important Version Notes
@@ -58,7 +67,7 @@ numpy>=1.25.0
 - `Guard.use()` accepts validator **instances**, not classes
 - `Guard.validate(text)` is the main entry point
 
-### LangChain 0.3.x
+### LangChain 1.x
 - Use `ChatOpenAI(api_key=..., base_url=..., model=...)` for custom endpoints
 - Use `OpenAIEmbeddings(api_key=..., base_url=..., model=...)` for custom embedding endpoints
 

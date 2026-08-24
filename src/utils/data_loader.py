@@ -8,7 +8,40 @@ Cách dùng:
     chunks      = split_text(text, chunk_size=500, chunk_overlap=50)
     vectorstore = build_vectorstore(chunks, embeddings)
 """
+import hashlib
 from pathlib import Path
+
+from utils.retry import invoke_with_retry
+
+
+_VECTORSTORE_CACHE = {}
+
+
+def embed_documents_in_batches(
+    texts: list[str],
+    embeddings,
+    batch_size: int = 50,
+    attempts: int = 5,
+    sleep=None,
+) -> list[list[float]]:
+    """Embed documents in quota-friendly batches with bounded retry/backoff."""
+    vectors = []
+    for start in range(0, len(texts), batch_size):
+        batch = texts[start : start + batch_size]
+        retry_kwargs = {}
+        if sleep is not None:
+            retry_kwargs["sleep"] = sleep
+        batch_vectors = invoke_with_retry(
+            lambda: embeddings.embed_documents(batch),
+            attempts=attempts,
+            base_delay=1.0,
+            label=f"Embedding batch {start + 1}-{start + len(batch)}",
+            **retry_kwargs,
+        )
+        vectors.extend(batch_vectors)
+    if len(vectors) != len(texts):
+        raise ValueError(f"Embedding count mismatch: got {len(vectors)}, expected {len(texts)}")
+    return vectors
 
 
 def load_knowledge_base(path: str = None) -> str:
@@ -63,7 +96,16 @@ def build_vectorstore(chunks: list, embeddings):
     """
     from langchain_community.vectorstores import FAISS
 
+    model_name = str(getattr(embeddings, "model", ""))
+    content_digest = hashlib.sha256("\0".join(chunks).encode("utf-8")).hexdigest()
+    cache_key = (type(embeddings).__module__, type(embeddings).__qualname__, model_name, content_digest)
+    if cache_key in _VECTORSTORE_CACHE:
+        print(f"♻️  Tái sử dụng FAISS index {len(chunks)} chunks trong phiên hiện tại.")
+        return _VECTORSTORE_CACHE[cache_key]
+
     print(f"🔨 Đang tạo FAISS index từ {len(chunks)} chunks ...")
-    vectorstore = FAISS.from_texts(chunks, embeddings)
+    vectors = embed_documents_in_batches(chunks, embeddings)
+    vectorstore = FAISS.from_embeddings(zip(chunks, vectors), embeddings)
+    _VECTORSTORE_CACHE[cache_key] = vectorstore
     print("✅ FAISS vectorstore đã sẵn sàng.")
     return vectorstore

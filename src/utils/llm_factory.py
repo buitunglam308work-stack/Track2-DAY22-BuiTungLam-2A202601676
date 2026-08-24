@@ -47,10 +47,25 @@ def get_llm(provider: str = None, temperature: float = 0.0):
 
     elif provider == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
+        from langchain_core.rate_limiters import InMemoryRateLimiter
+
+        kwargs = {
+            "model": config.GEMINI_MODEL,
+            "google_api_key": config.GOOGLE_API_KEY,
+            # Stay below the free-tier chat RPM and coordinate concurrent
+            # RAGAS workers through the model's shared limiter.
+            "rate_limiter": InMemoryRateLimiter(
+                requests_per_second=0.2,
+                check_every_n_seconds=0.1,
+                max_bucket_size=1,
+            ),
+        }
+        # Gemini 3.6 has fixed sampling defaults and warns when temperature is
+        # supplied; older Gemini models still accept the caller's preference.
+        if not config.GEMINI_MODEL.startswith("gemini-3.6"):
+            kwargs["temperature"] = temperature
         return ChatGoogleGenerativeAI(
-            model=config.GEMINI_MODEL,
-            google_api_key=config.GOOGLE_API_KEY,
-            temperature=temperature,
+            **kwargs,
         )
 
     elif provider == "anthropic":

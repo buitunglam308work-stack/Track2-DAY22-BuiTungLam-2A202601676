@@ -64,6 +64,7 @@ Mở tệp `.env` và điền các giá trị sau:
 LANGSMITH_API_KEY=lsv2_...
 LANGSMITH_PROJECT=day22-lab
 LANGCHAIN_TRACING_V2=true
+LANGSMITH_WORKSPACE_ID=              # Optional workspace UUID
 
 # Chọn một trong các provider bên dưới
 PROVIDER=openai
@@ -73,6 +74,8 @@ OPENAI_API_KEY=sk-...
 
 # Google Gemini (nếu dùng PROVIDER=gemini)
 GOOGLE_API_KEY=AIza...
+GEMINI_MODEL=gemini-3.6-flash
+GEMINI_EMBEDDING_MODEL=gemini-embedding-001
 
 # Anthropic (nếu dùng PROVIDER=anthropic)
 ANTHROPIC_API_KEY=sk-ant-...

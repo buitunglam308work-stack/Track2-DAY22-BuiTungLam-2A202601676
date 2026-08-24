@@ -9,9 +9,13 @@ Cách dùng:
 import sys
 import argparse
 import importlib
+import inspect
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+from utils.console import configure_utf8_console
+
+configure_utf8_console()
 
 
 STEPS = {
@@ -29,7 +33,18 @@ def run_step(step_num: int):
     print(f"{'=' * 60}")
     try:
         module = importlib.import_module(module_name)
-        module.main()
+        # Do not leak run_all's --step argument into a child module parser.
+        # Modules that expose argv receive an explicit empty argument list;
+        # legacy no-argument entrypoints are called without positional args.
+        main_parameters = inspect.signature(module.main).parameters
+        accepts_argv = any(
+            parameter.kind in (parameter.POSITIONAL_ONLY, parameter.POSITIONAL_OR_KEYWORD)
+            for parameter in main_parameters.values()
+        ) or any(parameter.kind == parameter.VAR_POSITIONAL for parameter in main_parameters.values())
+        if accepts_argv:
+            module.main([])
+        else:
+            module.main()
         print(f"\n✅ {title} — HOÀN THÀNH")
         return True
     except SystemExit as e:
@@ -70,6 +85,8 @@ def main():
         status = "✅ PASS" if success else "❌ FAIL"
         print(f"  {status}  {title}")
 
+    return 0 if results and all(results.values()) else 1
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

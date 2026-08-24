@@ -47,6 +47,7 @@ Mở `.env` bằng bất kỳ editor nào và điền thông tin:
 # ─── LangSmith (bắt buộc) ─────────────────────────────────────────────────────
 LANGSMITH_API_KEY=lsv2_pt_...        # API key vừa lấy ở trên
 LANGSMITH_PROJECT=day22-lab          # Tên project trên LangSmith
+LANGSMITH_WORKSPACE_ID=              # Optional workspace UUID
 LANGCHAIN_TRACING_V2=true            # Bật tracing — không thay đổi giá trị này
 
 # ─── Chọn provider LLM ────────────────────────────────────────────────────────
@@ -57,6 +58,8 @@ OPENAI_API_KEY=sk-...
 
 # ─── Google Gemini (nếu PROVIDER=gemini) ─────────────────────────────────────
 GOOGLE_API_KEY=AIza...
+GEMINI_MODEL=gemini-3.6-flash
+GEMINI_EMBEDDING_MODEL=gemini-embedding-001
 
 # ─── Anthropic (nếu PROVIDER=anthropic) ──────────────────────────────────────
 ANTHROPIC_API_KEY=sk-ant-...

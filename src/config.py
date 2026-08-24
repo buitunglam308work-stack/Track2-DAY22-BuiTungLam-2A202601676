@@ -14,9 +14,12 @@ load_dotenv(_root / ".env")
 
 # ── LangSmith — PHẢI set trước khi import LangChain ──────────────────────
 os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2", "true")
-os.environ["LANGCHAIN_API_KEY"]    = os.getenv("LANGCHAIN_API_KEY", "")
-os.environ["LANGCHAIN_PROJECT"]    = os.getenv("LANGCHAIN_PROJECT", "day22-lab")
+os.environ["LANGCHAIN_API_KEY"]    = os.getenv("LANGCHAIN_API_KEY") or os.getenv("LANGSMITH_API_KEY", "")
+os.environ["LANGCHAIN_PROJECT"]    = os.getenv("LANGCHAIN_PROJECT") or os.getenv("LANGSMITH_PROJECT", "day22-lab")
 os.environ["LANGCHAIN_ENDPOINT"]   = os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
+_workspace_id = os.getenv("LANGSMITH_WORKSPACE_ID") or os.getenv("LANGCHAIN_WORKSPACE_ID", "")
+if _workspace_id:
+    os.environ["LANGSMITH_WORKSPACE_ID"] = _workspace_id
 
 # ── Provider mặc định ─────────────────────────────────────────────────────
 # Đổi giá trị PROVIDER trong .env: openai | gemini | anthropic | ollama | openrouter
@@ -30,8 +33,8 @@ OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-s
 
 # ── Google Gemini ─────────────────────────────────────────────────────────
 GOOGLE_API_KEY          = os.getenv("GOOGLE_API_KEY", "")
-GEMINI_MODEL            = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
-GEMINI_EMBEDDING_MODEL  = os.getenv("GEMINI_EMBEDDING_MODEL", "models/embedding-001")
+GEMINI_MODEL            = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+GEMINI_EMBEDDING_MODEL  = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
 
 # ── Anthropic ─────────────────────────────────────────────────────────────
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
@@ -48,8 +51,10 @@ OPENROUTER_MODEL    = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # ── LangSmith ─────────────────────────────────────────────────────────────
-LANGSMITH_API_KEY = os.getenv("LANGCHAIN_API_KEY", "")
-LANGSMITH_PROJECT = os.getenv("LANGCHAIN_PROJECT", "day22-lab")
+# Both spellings appear in the lab docs; LangChain names remain canonical.
+LANGSMITH_API_KEY = os.getenv("LANGCHAIN_API_KEY") or os.getenv("LANGSMITH_API_KEY", "")
+LANGSMITH_PROJECT = os.getenv("LANGCHAIN_PROJECT") or os.getenv("LANGSMITH_PROJECT", "day22-lab")
+LANGSMITH_WORKSPACE_ID = _workspace_id
 
 
 def validate() -> bool:
@@ -80,6 +85,30 @@ def validate() -> bool:
         return False
 
     print(f"✅ Config OK  |  Provider: {PROVIDER.upper()}  |  Project: {LANGSMITH_PROJECT}")
+    return True
+
+
+def get_langsmith_client():
+    """Create a LangSmith client using the configured endpoint and workspace."""
+    from langsmith import Client
+
+    kwargs = {
+        "api_key": LANGSMITH_API_KEY,
+        "api_url": os.environ["LANGCHAIN_ENDPOINT"],
+    }
+    if LANGSMITH_WORKSPACE_ID:
+        kwargs["workspace_id"] = LANGSMITH_WORKSPACE_ID
+    return Client(**kwargs)
+
+
+def validate_langsmith_connection() -> bool:
+    """Fail fast when traces/Prompt Hub cannot reach the selected workspace."""
+    try:
+        next(get_langsmith_client().list_projects(limit=1), None)
+    except Exception as exc:
+        print(f"❌ LangSmith authentication/workspace check failed: {exc}")
+        return False
+    print("✅ LangSmith authentication/workspace check passed")
     return True
 
 

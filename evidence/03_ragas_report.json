@@ -1,0 +1,47 @@
+{
+  "prompt_v1_scores": {
+    "faithfulness": 0.954111111111111,
+    "answer_relevancy": 0.9122665394626435,
+    "context_recall": 1.0,
+    "context_precision": 0.9416666665940835
+  },
+  "prompt_v2_scores": {
+    "faithfulness": 0.9941666666666665,
+    "answer_relevancy": 0.9138184246908289,
+    "context_recall": 1.0,
+    "context_precision": 0.94833333325975
+  },
+  "target_met": true,
+  "sample_counts": {
+    "v1": 50,
+    "v2": 50
+  },
+  "model": {
+    "provider": "openai",
+    "llm": "gpt-4o-mini",
+    "embedding": "text-embedding-3-small"
+  },
+  "retrieval_config": {
+    "chunk_size": 500,
+    "chunk_overlap": 50,
+    "k": 3
+  },
+  "winner": {
+    "by_metric": {
+      "faithfulness": "v2",
+      "answer_relevancy": "v2",
+      "context_recall": "tie",
+      "context_precision": "v2"
+    },
+    "faithfulness": "v2"
+  },
+  "analysis": "V2 có faithfulness cao hơn 0.0401; chênh lệch answer relevancy tuyệt đối là 0.0016. Hai phiên bản dùng cùng retriever và context, nên khác biệt chủ yếu đến từ cách định dạng câu trả lời: cấu trúc kết luận kèm sự thật hỗ trợ, không có meta-claim của V2.",
+  "checkpoints": {
+    "v1": "data/ragas_checkpoint_v1.json",
+    "v2": "data/ragas_checkpoint_v2.json"
+  },
+  "prompt_fingerprints": {
+    "v1": "7feb3d3e3012564ac477ba3d9faa79ba475089c1a15f1b8140135a3a0559d8b6",
+    "v2": "9321825b3301e6d55b730f4c57803dbb857585e0d02c1ccd1461ed3c4ad56583"
+  }
+}
